@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Clinton Oh</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --primary: #666;
+            --secondary: #2870ff;
+            --accent: #ff6b35;
+            --bg: #ffffff;
+            --text: #333333;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.8;
+            overflow-x: hidden;
+        }
+        h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; font-weight: 800; }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Scroll animation classes */
+        [data-animate] {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        [data-animate].animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Navigation */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            padding: 0 5%;
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+        .logo {
+            font-family: 'Poppins', sans-serif;
+            font-size: 1.75rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .nav-links { display: flex; gap: 2.5rem; }
+        .nav-link {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 600;
+            font-size: 0.95rem;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover, .nav-link.active { color: var(--primary); }
+        .nav-link:hover::after, .nav-link.active::after { width: 100%; }
+
+        /* Three.js canvas */
+        #hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Common button styles */
+        .btn {
+            display: inline-block;
+            padding: 1.1rem 3rem;
+            background: white;
+            color: var(--primary);
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 1rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        /* Common section styles */
+        section {
+            padding: 100px 5%;
+            position: relative;
+        }
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+        .section-header h2 {
+            font-size: clamp(2rem, 4vw, 3rem);
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Card styles */
+        .card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.15);
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar { padding: 0 4%; }
+            .nav-links { display: none; }
+            section { padding: 60px 5%; }
+            .grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .btn { padding: 1rem 2rem; width: 100%; text-align: center; }
+            .card { padding: 2rem; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">Clinton Oh</div>
+        <div class="nav-links"><a href="index.html" class="nav-link active">Home</a>
+            <a href="coaching.html" class="nav-link ">Coaching</a>
+            <a href="franchising.html" class="nav-link ">Franchising</a>
+            <a href="mymanager.html" class="nav-link ">MyManager</a>
+            <a href="contact.html" class="nav-link ">Contact Us</a></div>
+    </nav>
+
+    <section style="position: relative; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://lirp.cdn-website.com/7e69d783/dms3rep/multi/opt/clinton2-1920w.png'); background-size: cover; background-position: center; background-attachment: fixed; overflow: hidden; font-family: 'Inter', sans-serif;">
+  
+  <!-- Decorative Blurred Circles -->
+  <div style="position: absolute; top: 10%; left: 15%; width: 300px; height: 300px; background: var(--secondary); border-radius: 50%; filter: blur(100px); opacity: 0.3; animation: float 6s ease-in-out infinite;"></div>
+  <div style="position: absolute; bottom: 20%; right: 20%; width: 250px; height: 250px; background: var(--accent); border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: float 8s ease-in-out infinite reverse;"></div>
+  <div style="position: absolute; top: 50%; left: 5%; width: 200px; height: 200px; background: var(--primary); border-radius: 50%; filter: blur(60px); opacity: 0.2; animation: float 10s ease-in-out infinite;"></div>
+  
+  <!-- Main Content -->
+  <div style="text-align: center; z-index: 10; max-width: 1200px; padding: 0 20px;">
+    
+    <!-- Main Headline -->
+    <h1 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: clamp(3.5rem, 8vw, 8rem); color: white; margin: 0 0 20px 0; text-shadow: 2px 2px 20px rgba(0,0,0,0.8); line-height: 1.1; letter-spacing: -2px;">
+      CLINTON OH
+    </h1>
+    
+    <!-- Tagline -->
+    <p style="font-family: 'Poppins', sans-serif; font-weight: 400; font-size: clamp(1.2rem, 3vw, 2rem); color: rgba(255,255,255,0.9); margin: 0 0 40px 0; text-shadow: 1px 1px 10px rgba(0,0,0,0.7); letter-spacing: 2px; text-transform: uppercase;">
+      Entrepreneur - Consultant - Investor
+    </p>
+    
+    <!-- Subtitle -->
+    <p style="font-size: clamp(1rem, 2.5vw, 1.5rem); color: rgba(255,255,255,0.8); margin: 0 0 50px 0; max-width: 800px; margin-left: auto; margin-right: auto; line-height: 1.6; text-shadow: 1px 1px 10px rgba(0,0,0,0.7);">
+      Turn Your Next Dream and Idea Into Reality. Get Your Business & Brand Ready for Franchising with Modern Technology and Proven Strategies.
+    </p>
+    
+    <!-- CTA Button -->
+    <a href="#contact" style="display: inline-block; background: linear-gradient(135deg, var(--secondary), var(--accent)); color: white; padding: 20px 50px; border-radius: 50px; text-decoration: none; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: clamp(1rem, 2vw, 1.3rem); text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 20px 40px rgba(40, 112, 255, 0.3), 0 0 0 0 rgba(255, 255, 255, 0.4); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); position: relative; overflow: hidden;">
+      <span style="position: relative; z-index: 2;">Get Started Today</span>
+      <div style="position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent); transform: rotate(45deg); transition: all 0.6s; opacity: 0;"></div>
+    </a>
+    
+    <!-- Scroll Indicator -->
+    <div style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); color: rgba(255,255,255,0.7); font-size: 14px; text-transform: uppercase; letter-spacing: 2px; animation: bounce 2s infinite;">
+      <div style="margin-bottom: 10px;">Scroll Down</div>
+      <div style="width: 2px; height: 30px; background: rgba(255,255,255,0.5); margin: 0 auto; position: relative;">
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 10px; background: var(--secondary); animation: scrollIndicator 2s infinite;"></div>
+      </div>
+    </div>
+    
+  </div>
+  
+  <style>
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+    
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+      40% { transform: translateX(-50%) translateY(-10px); }
+      60% { transform: translateX(-50%) translateY(-5px); }
+    }
+    
+    @keyframes scrollIndicator {
+      0% { top: 0; opacity: 1; }
+      100% { top: 20px; opacity: 0; }
+    }
+    
+    a:hover {
+      transform: translateY(-5px) scale(1.05);
+      box-shadow: 0 30px 60px rgba(40, 112, 255, 0.4), 0 0 0 8px rgba(255, 255, 255, 0.1);
+    }
+    
+    a:hover div {
+      opacity: 1;
+      left: -10%;
+    }
+  </style>
+  
+</section>
+
+    <section style="padding: 100px 5%; background: var(--bg); font-family: 'Inter', sans-serif;">
+  <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+    <h2 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 3rem; color: var(--text); margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 2px;">Services & Expertise</h2>
+    <p style="font-size: 1.2rem; color: var(--primary); margin-bottom: 4rem; max-width: 600px; margin-left: auto; margin-right: auto;">Transform your business dreams into reality with proven strategies and expert guidance</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 2rem; margin-top: 3rem;">
+      
+      <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 24px; padding: 2.5rem; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 25px 50px rgba(40, 112, 255, 0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.1)'">
+        <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, var(--secondary), var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🚀</div>
+        <h3 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--text); margin-bottom: 1rem; text-transform: uppercase;">Business Consulting</h3>
+        <p style="color: var(--primary); line-height: 1.6; font-size: 1rem;">Turn your next dream and idea into reality with strategic business consulting and proven methodologies for sustainable growth.</p>
+        <div style="position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; background: url('https://lirp.cdn-website.com/7e69d783/dms3rep/multi/opt/clinton2-1920w.png') center/cover; opacity: 0.05; border-radius: 50%;"></div>
+      </div>
+      
+      <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 24px; padding: 2.5rem; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 25px 50px rgba(255, 107, 53, 0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.1)'">
+        <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, var(--accent), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🏢</div>
+        <h3 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--text); margin-bottom: 1rem; text-transform: uppercase;">Franchise Development</h3>
+        <p style="color: var(--primary); line-height: 1.6; font-size: 1rem;">Get your business and brand ready for franchising with comprehensive systems, processes, and scalable business models.</p>
+        <div style="position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; background: url('https://lirp.cdn-website.com/7e69d783/dms3rep/multi/opt/clinton-1920w.png') center/cover; opacity: 0.05; border-radius: 50%;"></div>
+      </div>
+      
+      <div style="background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 24px; padding: 2.5rem; text-align: center; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; position: relative; overflow: hidden;" onmouseover="this.style.transform='translateY(-10px)'; this.style.boxShadow='0 25px 50px rgba(40, 112, 255, 0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(0, 0, 0, 0.1)'">
+        <div style="width: 80px; height: 80px; margin: 0 auto 1.5rem; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem;">📈</div>
+        <h3 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--text); margin-bottom: 1rem; text-transform: uppercase;">Strategic Growth</h3>
+        <p style="color: var(--primary); line-height: 1.6; font-size: 1rem;">Leverage modern technology and proven strategies to accelerate business growth and maximize investment opportunities.</p>
+        <div style="position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; background: url('https://lirp.cdn-website.com/7e69d783/dms3rep/multi/opt/arrows-190w.png') center/cover; opacity: 0.08; border-radius: 50%;"></div>
+      </div>
+
+    <section style="padding: 120px 0; background: linear-gradient(135deg, var(--bg) 0%, #f8faff 100%); position: relative; overflow: hidden;">
+  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 80%, rgba(40, 112, 255, 0.05) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.03) 0%, transparent 50%); pointer-events: none;"></div>
+  
+  <div style="max-width: 1400px; margin: 0 auto; padding: 0 40px; position: relative; z-index: 2;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center;">
+      
+      <div style="padding-right: 40px;">
+        <div style="margin-bottom: 16px;">
+          <span style="display: inline-block; padding: 8px 20px; background: linear-gradient(135deg, var(--secondary), #4A90E2); color: white; border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">About Clinton</span>
+        </div>
+        
+        <h1 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 48px; line-height: 1.2; color: var(--text); margin: 0 0 24px 0; background: linear-gradient(135deg, var(--text), var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Entrepreneur - Consultant - Investor</h1>
+        
+        <p style="font-family: 'Inter', sans-serif; font-size: 18px; line-height: 1.7; color: var(--primary); margin: 0 0 32px 0; opacity: 0.9;">Meet Clinton, a seasoned entrepreneur and CEO of multiple franchise companies. Through his company, Next Level Media, he leverages modern technology to turn dreams and ideas into reality, helping businesses get ready for franchising and scale to new heights.</p>
+        
+        <div style="display: flex; gap: 16px; margin-bottom: 40px;">
+          <div style="flex: 1; padding: 24px; background: rgba(40, 112, 255, 0.05); border-radius: 16px; border-left: 4px solid var(--secondary);">
+            <h4 style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 16px; color: var(--text); margin: 0 0 8px 0;">Business Growth</h4>
+            <p style="font-family: 'Inter', sans-serif; font-size: 14px; color: var(--primary); margin: 0; opacity: 0.8;">Strategic consulting for scaling operations</p>
+          </div>
+          <div style="flex: 1; padding: 24px; background: rgba(255, 107, 53, 0.05); border-radius: 16px; border-left: 4px solid var(--accent);">
+            <h4 style="font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 16px; color: var(--text); margin: 0 0 8px 0;">Franchising</h4>
+            <p style="font-family: 'Inter', sans-serif; font-size: 14px; color: var(--primary); margin: 0; opacity: 0.8;">Expert guidance on franchise development</p>
+          </div>
+        </div>
+        
+        <a href="#contact" style="display: inline-flex; align-items: center; gap: 12px; padding: 18px 36px; background: linear-gradient(135deg, var(--secondary), #4A90E2); color: white; text-decoration: none; border-radius: 50px; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 16px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 8px 32px rgba(40, 112, 255, 0.3); position: relative; overflow: hidden;">
+          <span style="position: relative; z-index: 2;">Learn More</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style="position: relative; z-index: 2; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+            <path d="M7 17L17 7M17 7H7M17 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0)); opacity: 0; transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+        </a>
+      </div>
+      
+      <div style="position: relative;">
+        <div style="position: absolute; top: -20px; left: -20px; width: calc(100% + 40px); height: calc(100% + 40px); background: linear-gradient(135deg, rgba(40, 112, 255, 0.1), rgba(255, 107, 53, 0.1)); border-radius: 32px; z-index: 1;"></div>
+        <div style="position: relative; z-index: 2; border-radius: 24px; overflow: hidden; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.1);">
+          <img src="https://lirp.cdn-website.com/7e69d783/dms3rep/multi/opt/clinton-1920w.png" alt="Clinton Oh - Entrepreneur, Consultant, and Investor" style="width: 100%; height: 600px; object-fit: cover; border-radius: 24px; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);">
+        </div>
+        <div style="position: absolute; bottom: 24px; right: 24px; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); padding: 20px; border-radius: 16px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); z
+
+    <section style="padding: 120px 0; background: linear-gradient(135deg, var(--bg) 0%, #f8faff 100%); font-family: 'Inter', sans-serif;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 24px;">
+    <div style="text-align: center; margin-bottom: 80px;">
+      <h2 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 3.5rem; color: var(--text); margin-bottom: 24px; letter-spacing: -0.02em;">CLIENT SUCCESS STORIES</h2>
+      <p style="font-size: 1.25rem; color: var(--primary); max-width: 600px; margin: 0 auto; line-height: 1.6;">See how Clinton has transformed businesses and helped entrepreneurs achieve their dreams</p>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 32px; margin-top: 60px;">
+      
+      <div style="background: var(--bg); border-radius: 24px; padding: 40px; position: relative; border: 1px solid transparent; background-clip: padding-box; box-shadow: 0 20px 40px rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--secondary), var(--accent)); opacity: 0.1; border-radius: 24px; z-index: 0;"></div>
+        <div style="position: relative; z-index: 1;">
+          <div style="font-size: 4rem; color: var(--secondary); margin-bottom: 24px; font-family: Georgia, serif; line-height: 1;">"</div>
+          <p style="font-size: 1.125rem; line-height: 1.7; color: var(--text); margin-bottom: 32px; font-style: italic;">Clinton's guidance transformed our family business into a franchising powerhouse. His strategic insights and modern technology approach helped us scale from one location to fifteen in just two years. Absolutely game-changing!</p>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary), var(--accent)); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.5rem;">S</div>
+            <div>
+              <div style="font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text); font-size: 1.125rem;">Sarah Mitchell</div>
+              <div style="color: var(--primary); font-size: 0.95rem;">CEO, Mitchell's Restaurant Group</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: var(--bg); border-radius: 24px; padding: 40px; position: relative; border: 1px solid transparent; background-clip: padding-box; box-shadow: 0 20px 40px rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--accent), var(--secondary)); opacity: 0.1; border-radius: 24px; z-index: 0;"></div>
+        <div style="position: relative; z-index: 1;">
+          <div style="font-size: 4rem; color: var(--accent); margin-bottom: 24px; font-family: Georgia, serif; line-height: 1;">"</div>
+          <p style="font-size: 1.125rem; line-height: 1.7; color: var(--text); margin-bottom: 32px; font-style: italic;">Working with Clinton was the best investment decision I've ever made. His consulting expertise and entrepreneurial mindset helped me turn my startup idea into reality. We're now generating seven figures annually!</p>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 1.5rem;">M</div>
+            <div>
+              <div style="font-family: 'Poppins', sans-serif; font-weight: 600; color: var(--text); font-size: 1.125rem;">Marcus Rodriguez</div>
+              <div style="color: var(--primary); font-size: 0.95rem;">Founder, TechFlow Solutions</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="background: var(--bg); border-radius: 24px; padding: 40px; position: relative; border: 1px solid transparent; background-clip: padding-box; box-shadow: 0 20px 40px rgba(0,0,0,0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, var(--secondary), var(--primary)); opacity: 0.1; border-radius: 24px; z-index: 0;"></div>
+        <div style="position: relative; z-index: 1;">
+          <div style="font-size: 4rem; color: var(--secondary); margin-bottom: 24px; font-family: Georgia, serif; line-height: 1;">"</div>
+          <p style="font-size: 1.125rem; line-height: 1.7; color: var(--text); margin-bottom: 32px; font-style: italic;">Clinton's investment guidance and business acumen completely transformed our company's trajectory. His hands-on approach and strategic vision helped us secure funding and expand into new markets we never thought possible.</p>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary), var(--primary));
+
+    <section style="padding: 80px 20px; background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%); color: white;">
+  <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+    <h2 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 3rem; margin-bottom: 60px; text-transform: uppercase; letter-spacing: 2px;">PROVEN RESULTS</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; margin-top: 60px;">
+      
+      <div style="padding: 40px 20px; border-radius: 24px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(0);" onmouseover="this.style.transform='translateY(-10px)'; this.style.background='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.background='rgba(255, 255, 255, 0.1)'">
+        <div style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 4rem; margin-bottom: 15px; color: white;">500+</div>
+        <div style="font-family: 'Inter', sans-serif; font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">BUSINESSES LAUNCHED</div>
+      </div>
+      
+      <div style="padding: 40px 20px; border-radius: 24px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(0);" onmouseover="this.style.transform='translateY(-10px)'; this.style.background='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.background='rgba(255, 255, 255, 0.1)'">
+        <div style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 4rem; margin-bottom: 15px; color: white;">15+</div>
+        <div style="font-family: 'Inter', sans-serif; font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">YEARS EXPERIENCE</div>
+      </div>
+      
+      <div style="padding: 40px 20px; border-radius: 24px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(0);" onmouseover="this.style.transform='translateY(-10px)'; this.style.background='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.background='rgba(255, 255, 255, 0.1)'">
+        <div style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 4rem; margin-bottom: 15px; color: white;">99%</div>
+        <div style="font-family: 'Inter', sans-serif; font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">CLIENT SUCCESS RATE</div>
+      </div>
+      
+      <div style="padding: 40px 20px; border-radius: 24px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(0);" onmouseover="this.style.transform='translateY(-10px)'; this.style.background='rgba(255, 255, 255, 0.15)'" onmouseout="this.style.transform='translateY(0)'; this.style.background='rgba(255, 255, 255, 0.1)'">
+        <div style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 4rem; margin-bottom: 15px; color: white;">$50M+</div>
+        <div style="font-family: 'Inter', sans-serif; font-size: 1.2rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">REVENUE GENERATED</div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+    <section style="background: linear-gradient(135deg, var(--text) 0%, var(--primary) 100%); padding: 80px 20px; text-align: center; position: relative; overflow: hidden;">
+  <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 30% 20%, rgba(40, 112, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);"></div>
+  <div style="max-width: 800px; margin: 0 auto; position: relative; z-index: 2;">
+    <h2 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 3.5rem; color: white; margin-bottom: 24px; line-height: 1.1; letter-spacing: -0.02em;">
+      READY TO TURN YOUR DREAMS INTO REALITY?
+    </h2>
+    <p style="font-family: 'Inter', sans-serif; font-size: 1.25rem; color: rgba(255, 255, 255, 0.9); margin-bottom: 40px; line-height: 1.6; max-width: 600px; margin-left: auto; margin-right: auto;">
+      Contact Clinton today and apply now to start growing your life and business. Get your brand ready for the next level with proven strategies and modern technology.
+    </p>
+    <a href="#contact" style="display: inline-block; background: white; color: var(--text); font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 1.1rem; padding: 18px 40px; border-radius: 50px; text-decoration: none; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); transform: translateY(0);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 20px 60px rgba(0, 0, 0, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 40px rgba(0, 0, 0, 0.2)';">
+      GET STARTED TODAY
+    </a>
+  </div>
+</section>
+
+    <footer style="background-color: #0a0a0a; color: #ffffff; padding: 80px 0 0; font-family: 'Inter', sans-serif;">
+  <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 60px; margin-bottom: 60px;">
+      
+      <div style="grid-column: span 1;">
+        <h2 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; color: #ffffff; margin-bottom: 16px; letter-spacing: -0.02em;">CLINTON OH</h2>
+        <p style="color: var(--secondary); font-size: 16px; font-weight: 500; margin-bottom: 24px; line-height: 1.4;">Entrepreneur - Consultant - Investor</p>
+        <p style="color: #999; line-height: 1.6; font-size: 14px; max-width: 300px;">Turn your next dream and idea into reality with proven strategies and expert guidance from a seasoned entrepreneur.</p>
+      </div>
+
+      <div style="grid-column: span 1;">
+        <h3 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 18px; color: #ffffff; margin-bottom: 24px; letter-spacing: -0.01em;">QUICK LINKS</h3>
+        <ul style="list-style: none; padding: 0; margin: 0;">
+          <li style="margin-bottom: 12px;">
+            <a href="#about" style="color: #999; text-decoration: none; font-size: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: block;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='#999'">About Clinton</a>
+          </li>
+          <li style="margin-bottom: 12px;">
+            <a href="#services" style="color: #999; text-decoration: none; font-size: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: block;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='#999'">Services</a>
+          </li>
+          <li style="margin-bottom: 12px;">
+            <a href="#consulting" style="color: #999; text-decoration: none; font-size: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: block;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='#999'">Consulting</a>
+          </li>
+          <li style="margin-bottom: 12px;">
+            <a href="#franchising" style="color: #999; text-decoration: none; font-size: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: block;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='#999'">Franchising</a>
+          </li>
+          <li style="margin-bottom: 12px;">
+            <a href="#contact" style="color: #999; text-decoration: none; font-size: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); display: block;" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='#999'">Get Started</a>
+          </li>
+        </ul>
+      </div>
+
+      <div style="grid-column: span 1;">
+        <h3 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 18px; color: #ffffff; margin-bottom: 24px; letter-spacing: -0.01em;">CONTACT INFO</h3>
+        <div style="space-y: 16px;">
+          <div style="margin-bottom: 16px;">
+            <p style="color: #999; font-size: 14px; margin: 0 0 4px 0;">Email</p>
+            <a href="mailto:hello@clintonoh.com" style="color: #ffffff; text-decoration: none; font-size: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='#ffffff'">hello@clintonoh.com</a>
+          </div>
+          <div style="margin-bottom: 16px;">
+            <p style="color: #999; font-size: 14px; margin: 0 0 4px 0;">Phone</p>
+            <a href="tel:+1234567890" style="color: #ffffff; text-decoration: none; font-size: 14px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onmouseover="this.style.color='var(--secondary)'" onmouseout="this.style.color='#ffffff'">+1 (234) 567-8900</a>
+          </div>
+          <div>
+            <p style="color: #999; font-size: 14px; margin: 0 0 4px 0;">Business Hours</p>
+            <p style="color: #ffffff; font-size: 14px; margin: 0;">Mon - Fri: 9AM - 6PM PST</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="grid-column: span 1;">
+        <h3 style="font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 18px; color: #ffffff; margin-bottom: 24px; letter-spacing: -0.01em;">READY TO START?</h3>
+        <p style="color: #999; font-size: 14px; line-height: 1.6; margin-bottom: 24px;">Contact Clinton today and apply now to start growing your life and business.</p>
+        <a href="#contact" style="display: inline-block; background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%); color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 50px; font-size: 14px; font-weight: 600; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px
+
+    <script>
+        // Intersection Observer for scroll animations
+        const animateOnScroll = () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('animated');
+                        }, index * 100);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('[data-animate]').forEach(el => observer.observe(el));
+        };
+
+        // Three.js background effect
+        const initThreeJS = () => {
+            const heroSection = document.querySelector('section:first-of-type, .hero');
+            if (!heroSection) return;
+
+            // Create canvas container
+            const canvas = document.createElement('canvas');
+            canvas.id = 'hero-canvas';
+            heroSection.style.position = 'relative';
+            heroSection.insertBefore(canvas, heroSection.firstChild);
+
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, heroSection.offsetWidth / heroSection.offsetHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(heroSection.offsetWidth, heroSection.offsetHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Get theme colors
+            const primary = getComputedStyle(document.documentElement).getPropertyValue('--primary').trim() || '#3b82f6';
+            const secondary = getComputedStyle(document.documentElement).getPropertyValue('--secondary').trim() || '#8b5cf6';
+
+            
+            // Particle system
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 200;
+            const posArray = new Float32Array(particlesCount * 3);
+
+            for (let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 10;
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.02,
+                color: primary,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+
+            camera.position.z = 3;
+
+            let mouseX = 0, mouseY = 0;
+            document.addEventListener('mousemove', (e) => {
+                mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+                mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+            });
+
+            const animate = () => {
+                requestAnimationFrame(animate);
+                particlesMesh.rotation.x += 0.001;
+                particlesMesh.rotation.y += 0.001;
+                particlesMesh.rotation.x += mouseY * 0.0005;
+                particlesMesh.rotation.y += mouseX * 0.0005;
+                renderer.render(scene, camera);
+            };
+            
+
+            animate();
+
+            // Handle resize
+            window.addEventListener('resize', () => {
+                camera.aspect = heroSection.offsetWidth / heroSection.offsetHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(heroSection.offsetWidth, heroSection.offsetHeight);
+            });
+        };
+
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            animateOnScroll();
+            if (typeof THREE !== 'undefined') {
+                initThreeJS();
+            }
+        });
+    </script>
+</body>
+</html>
